@@ -1,0 +1,56 @@
+### GENRES
+GET http://localhost:4000/api/genres
+
+###
+POST http://localhost:4000/api/genres
+Content-Type: application/json
+
+{
+  "name": "Suspense"
+}
+
+###
+PUT http://localhost:4000/api/genres/2
+Content-Type: application/json
+
+{
+  "name": "Drama Histórico"
+}
+
+###
+DELETE http://localhost:4000/api/genres/4
+
+### MOVIES
+GET http://localhost:4000/api/movies
+
+###
+GET http://localhost:4000/api/movies?genre=Ação
+
+###
+GET http://localhost:4000/api/movies/1
+
+###
+POST http://localhost:4000/api/movies
+Content-Type: application/json
+
+{
+  "title": "Matrix",
+  "genre": "Ficção Científica",
+  "year": 1999,
+  "type": "Filme",
+  "description": "Neo descobre a verdade por trás da Matrix",
+  "coverImage": "https://image.tmdb.org/t/p/w500/a4QFX2A2nYqS2TH0jrOJAKL5G6c.jpg"
+}
+
+###
+PUT http://localhost:4000/api/movies/2
+Content-Type: application/json
+
+{
+  "title": "Dark (Atualizado)",
+  "year": 2019
+}
+
+###
+DELETE http://localhost:4000/api/movies/1
+

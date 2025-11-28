@@ -4,12 +4,13 @@ Projeto completo solicitado nos slides: API REST em Node/Express seguindo o padr
 
 ## Arquitetura
 
-- **Backend (`backend/`)** – Express 5, arrays em memória simulando banco e camadas bem definidas:
+- **Backend (`backend/`)** – Express 5, MySQL como banco de dados e camadas bem definidas:
   - `src/routes` → organiza rotas REST (`movies.routes.js`, `genres.routes.js`).
   - `src/controllers` → orquestra requisição/resposta.
   - `src/services` → contém regras de negócio, CRUD completo e filtro por gênero.
+  - `src/models` → modelos de dados para MySQL (`Movie.js`, `Genre.js`).
   - `src/middleware` → tratadores de erro/404.
-  - `src/config` → configuração central (`appConfig.js`).
+  - `src/config` → configuração central (`appConfig.js`, `database.js`).
 - **Frontend (`metfliz/`)** – React + Vite com estrutura pedida (api, components, pages, services, hooks, context, assets):
   - Consome GET/POST/PUT/DELETE de filmes e gêneros.
   - Formulário completo para criar filmes.
@@ -18,7 +19,31 @@ Projeto completo solicitado nos slides: API REST em Node/Express seguindo o padr
 
 ## Como executar
 
-### 1. Backend (API REST)
+### 1. Configuração do Banco de Dados MySQL
+
+Antes de iniciar o backend, você precisa configurar o MySQL:
+
+1. **Certifique-se de que o MySQL está instalado e rodando**
+
+2. **Execute o script SQL para criar o banco de dados:**
+   ```bash
+   mysql -u root -p < backend/database/schema.sql
+   ```
+   
+   Ou abra o MySQL Workbench / cliente MySQL e execute o conteúdo do arquivo `backend/database/schema.sql`
+
+3. **Configure as variáveis de ambiente:**
+   
+   Crie um arquivo `.env` na pasta `backend` com o seguinte conteúdo:
+   ```
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=sua_senha_aqui
+   DB_NAME=metflix_db
+   PORT=4000
+   ```
+
+### 2. Backend (API REST)
 
 ```bash
 cd backend
@@ -26,9 +51,9 @@ npm install
 npm run dev
 ```
 
-A API sobe em `http://localhost:4000`. Os dados residem em arrays dentro dos services (mock local).
+A API sobe em `http://localhost:4000`. Os dados são persistidos no MySQL.
 
-### 2. Frontend (React)
+### 3. Frontend (React)
 
 ```bash
 cd metfliz
@@ -91,8 +116,27 @@ curl -X DELETE http://localhost:4000/api/movies/1
 - `MoviesPage`: lista filmes, aplica filtro por gênero (consulta o endpoint com query string), formulário completo de cadastro, edição inline e exclusão.
 - `GenresPage`: CRUD completo de gêneros, reutilizando os mesmos endpoints consumidos pelo filtro.
 
+## Estrutura do Banco de Dados
+
+### Tabela `genres`
+- `id`: INT (Primary Key, Auto Increment)
+- `name`: VARCHAR(100) (Unique, Not Null)
+- `created_at`: TIMESTAMP
+- `updated_at`: TIMESTAMP
+
+### Tabela `movies`
+- `id`: INT (Primary Key, Auto Increment)
+- `title`: VARCHAR(255) (Not Null)
+- `genre_id`: INT (Foreign Key -> genres.id)
+- `year`: INT (Not Null)
+- `type`: ENUM('Filme', 'Série') (Not Null)
+- `description`: TEXT
+- `cover_image`: VARCHAR(500)
+- `created_at`: TIMESTAMP
+- `updated_at`: TIMESTAMP
+
 ## Próximos passos sugeridos
 
-- Adicionar persistência real (SQLite/PostgreSQL) mantendo serviços isolados.
 - Escrever testes automatizados (Vitest/Jest para o front e supertest para o back).
 - Containerizar (Docker) para subir API + front simultaneamente.
+- Adicionar autenticação e autorização.

@@ -1,4 +1,5 @@
-const { getAllGenres } = require('./genres.service');
+const Movie = require('../models/Movie');
+const { findGenreByName } = require('./genres.service');
 
 const createHttpError = (statusCode, message) => {
   const error = new Error(message);
@@ -6,38 +7,13 @@ const createHttpError = (statusCode, message) => {
   return error;
 };
 
-let movies = [
-  {
-    id: 1,
-    title: 'Inception',
-    genre: 'Ação',
-    year: 2010,
-    type: 'Filme',
-    description: 'Um ladrão entra nos sonhos das pessoas para roubar segredos.',
-    coverImage: 'https://image.tmdb.org/t/p/w500/s3TBrRGB1iav7gFOCNx3H31MoES.jpg'
-  },
-  {
-    id: 2,
-    title: 'Dark',
-    genre: 'Ficção Científica',
-    year: 2017,
-    type: 'Série',
-    description: 'Famílias alemãs enfrentam viagens no tempo e segredos sombrios.',
-    coverImage: 'https://image.tmdb.org/t/p/w500/apbrbWs8M9lyOpJYU5WXrpFbk1Z.jpg'
-  }
-];
-
-const generateId = () => (movies.length ? Math.max(...movies.map((movie) => movie.id)) + 1 : 1);
-
-const validateGenreExists = (genreName) => {
+const validateGenreExists = async (genreName) => {
   const normalizedGenre = genreName?.trim();
   if (!normalizedGenre) {
     throw createHttpError(400, 'Gênero é obrigatório');
   }
 
-  const genreExists = getAllGenres().some(
-    (genre) => genre.name.toLowerCase() === normalizedGenre.toLowerCase()
-  );
+  const genreExists = await findGenreByName(normalizedGenre);
 
   if (!genreExists) {
     throw createHttpError(400, 'Gênero informado não está cadastrado');
@@ -46,9 +22,13 @@ const validateGenreExists = (genreName) => {
   return normalizedGenre;
 };
 
-const requireMovieById = (id) => {
+const getAllMovies = async (genreFilter) => {
+  return await Movie.findAll(genreFilter);
+};
+
+const getMovieById = async (id) => {
   const movieId = Number(id);
-  const movie = movies.find((item) => item.id === movieId);
+  const movie = await Movie.findById(movieId);
 
   if (!movie) {
     throw createHttpError(404, 'Filme ou série não encontrado');
@@ -57,18 +37,7 @@ const requireMovieById = (id) => {
   return movie;
 };
 
-const getAllMovies = (genreFilter) => {
-  if (!genreFilter) {
-    return movies;
-  }
-
-  const normalizedGenre = genreFilter.trim().toLowerCase();
-  return movies.filter((movie) => movie.genre.toLowerCase() === normalizedGenre);
-};
-
-const getMovieById = (id) => requireMovieById(id);
-
-const createMovie = (payload) => {
+const createMovie = async (payload) => {
   const { title, genre, year, type, description = '', coverImage = '' } = payload || {};
 
   if (!title || !title.trim()) {
@@ -83,31 +52,33 @@ const createMovie = (payload) => {
     throw createHttpError(400, 'Tipo deve ser "Filme" ou "Série"');
   }
 
-  const normalizedGenre = validateGenreExists(genre);
+  await validateGenreExists(genre);
 
-  const newMovie = {
-    id: generateId(),
+  return await Movie.create({
     title: title.trim(),
-    genre: normalizedGenre,
+    genre: genre.trim(),
     year: Number(year),
     type,
     description: description.trim(),
     coverImage: coverImage.trim()
-  };
-
-  movies = [...movies, newMovie];
-  return newMovie;
+  });
 };
 
-const updateMovie = (id, payload) => {
-  const movie = requireMovieById(id);
+const updateMovie = async (id, payload) => {
+  const movieId = Number(id);
+  const existingMovie = await Movie.findById(movieId);
+
+  if (!existingMovie) {
+    throw createHttpError(404, 'Filme ou série não encontrado');
+  }
+
   const { title, genre, year, type, description, coverImage } = payload || {};
 
   if (genre) {
-    validateGenreExists(genre);
+    await validateGenreExists(genre);
   }
 
-  if (year && Number.isNaN(Number(year))) {
+  if (year !== undefined && Number.isNaN(Number(year))) {
     throw createHttpError(400, 'Ano deve ser numérico');
   }
 
@@ -115,23 +86,29 @@ const updateMovie = (id, payload) => {
     throw createHttpError(400, 'Tipo deve ser "Filme" ou "Série"');
   }
 
-  const updatedMovie = {
-    ...movie,
-    title: title !== undefined ? title.trim() : movie.title,
-    genre: genre !== undefined ? genre.trim() : movie.genre,
-    year: year !== undefined ? Number(year) : movie.year,
-    type: type !== undefined ? type : movie.type,
-    description: description !== undefined ? description.trim() : movie.description,
-    coverImage: coverImage !== undefined ? coverImage.trim() : movie.coverImage
-  };
+  const updateData = {};
+  if (title !== undefined) updateData.title = title;
+  if (genre !== undefined) updateData.genre = genre;
+  if (year !== undefined) updateData.year = Number(year);
+  if (type !== undefined) updateData.type = type;
+  if (description !== undefined) updateData.description = description;
+  if (coverImage !== undefined) updateData.coverImage = coverImage;
 
-  movies = movies.map((item) => (item.id === updatedMovie.id ? updatedMovie : item));
-  return updatedMovie;
+  return await Movie.update(movieId, updateData);
 };
 
-const deleteMovie = (id) => {
-  const movie = requireMovieById(id);
-  movies = movies.filter((item) => item.id !== movie.id);
+const deleteMovie = async (id) => {
+  const movieId = Number(id);
+  const existingMovie = await Movie.findById(movieId);
+
+  if (!existingMovie) {
+    throw createHttpError(404, 'Filme ou série não encontrado');
+  }
+
+  const deleted = await Movie.delete(movieId);
+  if (!deleted) {
+    throw createHttpError(404, 'Filme ou série não encontrado');
+  }
 };
 
 module.exports = {

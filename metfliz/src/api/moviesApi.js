@@ -24,3 +24,8 @@ export const deleteMovie = (id) =>
     method: 'DELETE'
   });
 
+export const searchMovies = (searchTerm) => {
+  const query = searchTerm ? `?q=${encodeURIComponent(searchTerm)}` : '';
+  return apiClient(`/movies/search${query}`);
+};
+

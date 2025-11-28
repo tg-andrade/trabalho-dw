@@ -111,11 +111,19 @@ const deleteMovie = async (id) => {
   }
 };
 
+const searchMovies = async (searchTerm) => {
+  if (!searchTerm || !searchTerm.trim()) {
+    throw createHttpError(400, 'Termo de busca é obrigatório');
+  }
+  return await Movie.search(searchTerm.trim());
+};
+
 module.exports = {
   getAllMovies,
   getMovieById,
   createMovie,
   updateMovie,
-  deleteMovie
+  deleteMovie,
+  searchMovies
 };
 

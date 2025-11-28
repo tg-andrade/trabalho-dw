@@ -4,6 +4,7 @@ const cors = require('cors');
 const APP_CONFIG = require('./config/appConfig');
 const moviesRouter = require('./routes/movies.routes');
 const genresRouter = require('./routes/genres.routes');
+const favoritesRouter = require('./routes/favorites.routes');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandlers');
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.json());
 
 app.use('/api/movies', moviesRouter);
 app.use('/api/genres', genresRouter);
+app.use('/api/favorites', favoritesRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

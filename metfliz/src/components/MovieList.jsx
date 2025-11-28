@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const MovieList = ({ movies, onDelete, onUpdate }) => {
+const MovieList = ({ movies, onDelete, onUpdate, onToggleFavorite, favorites = [] }) => {
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({});
 
@@ -33,8 +33,12 @@ const MovieList = ({ movies, onDelete, onUpdate }) => {
     }
   };
 
+  if (!movies || movies.length === 0) {
+    return <p style={{ color: 'var(--text-secondary)', padding: '2rem', textAlign: 'center' }}>Nenhum filme encontrado</p>;
+  }
+
   return (
-    <div className="grid">
+    <>
       {movies.map((movie) => (
         <article key={movie.id} className="card movie-card">
           {movie.coverImage ? (
@@ -81,24 +85,40 @@ const MovieList = ({ movies, onDelete, onUpdate }) => {
           </div>
           <footer className="movie-card__actions">
             {editingId === movie.id ? (
-              <>
+              <div className="button-group">
                 <button className="primary" onClick={() => handleUpdate(movie.id)}>
                   Salvar
                 </button>
-                <button onClick={() => setEditingId(null)}>Cancelar</button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => startEditing(movie)}>Editar</button>
-                <button className="danger" onClick={() => onDelete(movie.id)}>
-                  Excluir
+                <button className="secondary" onClick={() => setEditingId(null)}>
+                  Cancelar
                 </button>
-              </>
+              </div>
+            ) : (
+              <div className="button-group">
+                {onToggleFavorite && (
+                  <button
+                    className={favorites.some(f => f.id === movie.id) ? 'primary small' : 'secondary small'}
+                    onClick={() => onToggleFavorite(movie.id)}
+                  >
+                    {favorites.some(f => f.id === movie.id) ? '❤️ Remover' : '🤍 Adicionar'}
+                  </button>
+                )}
+                {onUpdate && (
+                  <button className="secondary small" onClick={() => startEditing(movie)}>
+                    Editar
+                  </button>
+                )}
+                {onDelete && (
+                  <button className="danger small" onClick={() => onDelete(movie.id)}>
+                    Excluir
+                  </button>
+                )}
+              </div>
             )}
           </footer>
         </article>
       ))}
-    </div>
+    </>
   );
 };
 

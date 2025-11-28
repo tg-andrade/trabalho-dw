@@ -3,6 +3,7 @@ const moviesController = require('../controllers/movies.controller');
 
 const router = Router();
 
+router.get('/search', moviesController.searchMovies);
 router.get('/', moviesController.getMovies);
 router.get('/:id', moviesController.getMovieById);
 router.post('/', moviesController.createMovie);

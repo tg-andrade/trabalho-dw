@@ -49,11 +49,22 @@ const deleteMovie = async (req, res, next) => {
   }
 };
 
+const searchMovies = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    const movies = await moviesService.searchMovies(q);
+    res.status(200).json(movies);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getMovies,
   getMovieById,
   createMovie,
   updateMovie,
-  deleteMovie
+  deleteMovie,
+  searchMovies
 };
 

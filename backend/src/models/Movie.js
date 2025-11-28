@@ -122,6 +122,30 @@ class Movie {
     const [result] = await pool.execute('DELETE FROM movies WHERE id = ?', [id]);
     return result.affectedRows > 0;
   }
+
+  static async search(searchTerm) {
+    const searchPattern = `%${searchTerm.trim()}%`;
+    const query = `
+      SELECT m.*, g.name as genre_name 
+      FROM movies m 
+      LEFT JOIN genres g ON m.genre_id = g.id 
+      WHERE LOWER(m.title) LIKE LOWER(?) 
+         OR LOWER(m.description) LIKE LOWER(?)
+         OR LOWER(g.name) LIKE LOWER(?)
+      ORDER BY m.id
+    `;
+    
+    const [rows] = await pool.execute(query, [searchPattern, searchPattern, searchPattern]);
+    return rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      genre: row.genre_name || row.genre_id,
+      year: row.year,
+      type: row.type,
+      description: row.description || '',
+      coverImage: row.cover_image || ''
+    }));
+  }
 }
 
 module.exports = Movie;

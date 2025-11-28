@@ -24,12 +24,27 @@ CREATE TABLE IF NOT EXISTS movies (
   FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Tabela de favoritos (Minha Lista)
+CREATE TABLE IF NOT EXISTS favorites (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  movie_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_favorite (movie_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Inserir gêneros iniciais
 INSERT INTO genres (name) VALUES
   ('Ação'),
   ('Drama'),
   ('Comédia'),
-  ('Ficção Científica')
+  ('Ficção Científica'),
+  ('Suspense'),
+  ('Romance'),
+  ('Animes'),
+  ('Documentários'),
+  ('Terror'),
+  ('Aventura')
 ON DUPLICATE KEY UPDATE name=name;
 
 -- Inserir filmes/séries iniciais

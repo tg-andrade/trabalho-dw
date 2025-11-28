@@ -24,19 +24,23 @@ const GenreList = ({ genres, onUpdate, onDelete }) => {
           {editingId === genre.id ? (
             <>
               <input value={draftName} onChange={(event) => setDraftName(event.target.value)} />
-              <div className="list-item__actions">
-                <button className="primary" onClick={() => handleSave(genre.id)}>
+              <div className="list-item__actions button-group">
+                <button className="primary small" onClick={() => handleSave(genre.id)}>
                   Salvar
                 </button>
-                <button onClick={() => setEditingId(null)}>Cancelar</button>
+                <button className="secondary small" onClick={() => setEditingId(null)}>
+                  Cancelar
+                </button>
               </div>
             </>
           ) : (
             <>
               <span>{genre.name}</span>
-              <div className="list-item__actions">
-                <button onClick={() => startEditing(genre)}>Editar</button>
-                <button className="danger" onClick={() => onDelete(genre.id)}>
+              <div className="list-item__actions button-group">
+                <button className="secondary small" onClick={() => startEditing(genre)}>
+                  Editar
+                </button>
+                <button className="danger small" onClick={() => onDelete(genre.id)}>
                   Excluir
                 </button>
               </div>

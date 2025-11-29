@@ -12,10 +12,10 @@ const handleResponse = async (response) => {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    // Para 404 em GET de favoritos, retorna array vazio
+    // Para 404 em GET de favoritos, lança erro específico para ser tratado pelo componente
     if (response.status === 404 && response.url.includes('/favorites') && !response.url.includes('/favorites/')) {
-      console.warn(`Endpoint de favoritos não encontrado (404): ${response.url}. Retornando array vazio.`);
-      return [];
+      console.warn(`Endpoint de favoritos não encontrado (404): ${response.url}.`);
+      throw new Error('Endpoint de favoritos não encontrado. Verifique se o backend está rodando e a tabela favorites existe no banco de dados.');
     }
     
     // Para outros 404, lança erro normalmente

@@ -450,6 +450,15 @@ a.button:hover {
   background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
 }
 
+.movie-card__link {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
+  min-height: 0;
+}
+
 .movie-card__body {
   display: flex;
   flex-direction: column;
@@ -831,6 +840,7 @@ textarea::placeholder {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  animation: heroFade 0.9s ease;
 }
 
 .hero-banner__content {
@@ -845,9 +855,35 @@ textarea::placeholder {
   height: 100%;
 }
 
+@keyframes heroFade {
+  0% {
+    opacity: 0;
+    transform: scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .hero-banner__info {
   max-width: 600px;
   animation: fadeIn 1s ease-in;
+}
+
+.hero-banner__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(229, 9, 20, 0.9);
+  color: #fff;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 24px rgba(229, 9, 20, 0.35);
 }
 
 .hero-banner__title {
@@ -889,6 +925,54 @@ textarea::placeholder {
 
 .hero-banner__actions button {
   min-width: 160px;
+}
+
+.hero-banner__controls {
+  position: absolute;
+  bottom: 2rem;
+  right: 4%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hero-banner__nav {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.hero-banner__nav:hover {
+  border-color: #fff;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.hero-banner__dots {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hero-banner__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.hero-banner__dot.active {
+  width: 28px;
+  border-radius: 999px;
+  background: var(--color-primary);
 }
 
 /* Barra de Busca na Home */
@@ -1058,6 +1142,14 @@ textarea::placeholder {
   flex: 0 0 280px;
   scroll-snap-align: start;
   cursor: pointer;
+}
+
+.carousel-item__link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
 }
 
 .carousel-item__poster {

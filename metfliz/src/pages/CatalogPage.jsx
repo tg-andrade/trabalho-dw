@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useGenreContext } from '../context/GenreContext';
 import { listMovies } from '../services/moviesService';
 import { listFavorites, addFavorite, removeFavorite } from '../services/favoritesService';
@@ -104,6 +105,19 @@ const CatalogPage = () => {
           setFavorites([...favorites, movie]);
           setNotification({ message: 'Adicionado à sua lista!', type: 'success' });
           console.log('Filme adicionado à lista de favoritos');
+          
+          // Recarregar favoritos do servidor após um pequeno delay
+          setTimeout(async () => {
+            try {
+              const updatedFavorites = await listFavorites();
+              if (Array.isArray(updatedFavorites)) {
+                setFavorites(updatedFavorites);
+                console.log('Favoritos recarregados do servidor:', updatedFavorites);
+              }
+            } catch (err) {
+              console.warn('Não foi possível recarregar favoritos do servidor:', err);
+            }
+          }, 500);
         } else {
           console.warn('Filme não encontrado após adicionar aos favoritos');
           setNotification({ message: 'Favorito adicionado, mas filme não encontrado na lista', type: 'info' });
@@ -184,25 +198,31 @@ const CatalogPage = () => {
                   <div className="catalog-grid">
                     {genreMovies.map((movie) => (
                       <article key={movie.id} className="card movie-card">
-                        {movie.coverImage ? (
-                          <img src={movie.coverImage} alt={movie.title} className="movie-card__cover" />
-                        ) : (
-                          <div className="movie-card__cover fallback">Sem imagem</div>
-                        )}
-                        <div className="movie-card__body">
-                          <h4>{movie.title}</h4>
-                          <p className="muted">
-                            {movie.genre} • {movie.year} • {movie.type}
-                          </p>
-                          {movie.description && (
-                            <p>{movie.description}</p>
+                        <Link to={`/movie/${movie.id}`} className="movie-card__link">
+                          {movie.coverImage ? (
+                            <img src={movie.coverImage} alt={movie.title} className="movie-card__cover" />
+                          ) : (
+                            <div className="movie-card__cover fallback">Sem imagem</div>
                           )}
-                        </div>
+                          <div className="movie-card__body">
+                            <h4>{movie.title}</h4>
+                            <p className="muted">
+                              {movie.genre} • {movie.year} • {movie.type}
+                            </p>
+                            {movie.description && (
+                              <p>{movie.description}</p>
+                            )}
+                          </div>
+                        </Link>
                         <footer className="movie-card__actions">
                           <div className="button-group">
                             <button
                               className={favorites.some(f => f.id === movie.id) ? 'primary small' : 'secondary small'}
-                              onClick={() => handleToggleFavorite(movie.id)}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleToggleFavorite(movie.id);
+                              }}
                             >
                               {favorites.some(f => f.id === movie.id) ? '❤️ Remover' : '🤍 Adicionar'}
                             </button>

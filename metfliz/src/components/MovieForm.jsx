@@ -6,7 +6,8 @@ const emptyState = {
   year: '',
   type: 'Filme',
   description: '',
-  coverImage: ''
+  coverImage: '',
+  videoUrl: ''
 };
 
 const MovieForm = ({ genres, onSubmit, initialValues = emptyState, submitLabel = 'Adicionar' }) => {
@@ -23,6 +24,8 @@ const MovieForm = ({ genres, onSubmit, initialValues = emptyState, submitLabel =
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
+      console.log('MovieForm - Enviando dados:', formData);
+      console.log('MovieForm - videoUrl sendo enviado:', formData.videoUrl);
       await onSubmit(formData);
       setFormData(emptyState);
     } catch (error) {
@@ -76,6 +79,19 @@ const MovieForm = ({ genres, onSubmit, initialValues = emptyState, submitLabel =
       <label className="form-control">
         <span>URL da capa</span>
         <input name="coverImage" value={formData.coverImage} onChange={handleChange} />
+      </label>
+
+      <label className="form-control">
+        <span>URL do vídeo</span>
+        <input 
+          name="videoUrl" 
+          value={formData.videoUrl} 
+          onChange={handleChange} 
+          placeholder="https://exemplo.com/video.mp4 ou https://youtube.com/watch?v=..." 
+        />
+        <small style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+          URL do arquivo de vídeo (MP4, WebM, OGG) ou link do YouTube
+        </small>
       </label>
 
       <button type="submit" className="primary">

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const MovieList = ({ movies, onDelete, onUpdate, onToggleFavorite, favorites = [] }) => {
   const [editingId, setEditingId] = useState(null);
@@ -12,7 +13,8 @@ const MovieList = ({ movies, onDelete, onUpdate, onToggleFavorite, favorites = [
       year: movie.year,
       type: movie.type,
       description: movie.description,
-      coverImage: movie.coverImage
+      coverImage: movie.coverImage,
+      videoUrl: movie.videoUrl || ''
     });
   };
 
@@ -41,14 +43,14 @@ const MovieList = ({ movies, onDelete, onUpdate, onToggleFavorite, favorites = [
     <>
       {movies.map((movie) => (
         <article key={movie.id} className="card movie-card">
-          {movie.coverImage ? (
-            <img src={movie.coverImage} alt={movie.title} className="movie-card__cover" />
-          ) : (
-            <div className="movie-card__cover fallback">Sem imagem</div>
-          )}
-          <div className="movie-card__body">
-            {editingId === movie.id ? (
-              <>
+          {editingId === movie.id ? (
+            <>
+              {movie.coverImage ? (
+                <img src={movie.coverImage} alt={movie.title} className="movie-card__cover" />
+              ) : (
+                <div className="movie-card__cover fallback">Sem imagem</div>
+              )}
+              <div className="movie-card__body">
                 <input name="title" value={draft.title} onChange={handleFieldChange} />
                 <input name="genre" value={draft.genre} onChange={handleFieldChange} />
                 <input
@@ -72,50 +74,68 @@ const MovieList = ({ movies, onDelete, onUpdate, onToggleFavorite, favorites = [
                   value={draft.coverImage}
                   onChange={handleFieldChange}
                 />
-              </>
-            ) : (
-              <>
-                <h4>{movie.title}</h4>
-                <p className="muted">
-                  {movie.genre} • {movie.year} • {movie.type}
-                </p>
-                <p>{movie.description}</p>
-              </>
-            )}
-          </div>
-          <footer className="movie-card__actions">
-            {editingId === movie.id ? (
-              <div className="button-group">
-                <button className="primary" onClick={() => handleUpdate(movie.id)}>
-                  Salvar
-                </button>
-                <button className="secondary" onClick={() => setEditingId(null)}>
-                  Cancelar
-                </button>
+                <input
+                  name="videoUrl"
+                  value={draft.videoUrl || ''}
+                  onChange={handleFieldChange}
+                  placeholder="URL do vídeo"
+                />
               </div>
-            ) : (
-              <div className="button-group">
-                {onToggleFavorite && (
-                  <button
-                    className={favorites.some(f => f.id === movie.id) ? 'primary small' : 'secondary small'}
-                    onClick={() => onToggleFavorite(movie.id)}
-                  >
-                    {favorites.some(f => f.id === movie.id) ? '❤️ Remover' : '🤍 Adicionar'}
+              <footer className="movie-card__actions">
+                <div className="button-group">
+                  <button className="primary" onClick={() => handleUpdate(movie.id)}>
+                    Salvar
                   </button>
-                )}
-                {onUpdate && (
-                  <button className="secondary small" onClick={() => startEditing(movie)}>
-                    Editar
+                  <button className="secondary" onClick={() => setEditingId(null)}>
+                    Cancelar
                   </button>
+                </div>
+              </footer>
+            </>
+          ) : (
+            <>
+              <Link to={`/movie/${movie.id}`} className="movie-card__link">
+                {movie.coverImage ? (
+                  <img src={movie.coverImage} alt={movie.title} className="movie-card__cover" />
+                ) : (
+                  <div className="movie-card__cover fallback">Sem imagem</div>
                 )}
-                {onDelete && (
-                  <button className="danger small" onClick={() => onDelete(movie.id)}>
-                    Excluir
-                  </button>
-                )}
-              </div>
-            )}
-          </footer>
+                <div className="movie-card__body">
+                  <h4>{movie.title}</h4>
+                  <p className="muted">
+                    {movie.genre} • {movie.year} • {movie.type}
+                  </p>
+                  <p>{movie.description}</p>
+                </div>
+              </Link>
+              <footer className="movie-card__actions">
+                <div className="button-group">
+                  {onToggleFavorite && (
+                    <button
+                      className={favorites.some(f => f.id === movie.id) ? 'primary small' : 'secondary small'}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onToggleFavorite(movie.id);
+                      }}
+                    >
+                      {favorites.some(f => f.id === movie.id) ? '❤️ Remover' : '🤍 Adicionar'}
+                    </button>
+                  )}
+                  {onUpdate && (
+                    <button className="secondary small" onClick={() => startEditing(movie)}>
+                      Editar
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button className="danger small" onClick={() => onDelete(movie.id)}>
+                      Excluir
+                    </button>
+                  )}
+                </div>
+              </footer>
+            </>
+          )}
         </article>
       ))}
     </>

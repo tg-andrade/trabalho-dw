@@ -20,7 +20,8 @@ class Movie {
       year: row.year,
       type: row.type,
       description: row.description || '',
-      coverImage: row.cover_image || ''
+      coverImage: row.cover_image || '',
+      videoUrl: row.video_url || ''
     }));
   }
 
@@ -42,11 +43,12 @@ class Movie {
       year: row.year,
       type: row.type,
       description: row.description || '',
-      coverImage: row.cover_image || ''
+      coverImage: row.cover_image || '',
+      videoUrl: row.video_url || ''
     };
   }
 
-  static async create({ title, genre, year, type, description = '', coverImage = '' }) {
+  static async create({ title, genre, year, type, description = '', coverImage = '', videoUrl = '' }) {
     // Primeiro, encontrar o gênero pelo nome
     const Genre = require('./Genre');
     const genreRecord = await Genre.findByName(genre);
@@ -56,14 +58,14 @@ class Movie {
     }
 
     const [result] = await pool.execute(
-      'INSERT INTO movies (title, genre_id, year, type, description, cover_image) VALUES (?, ?, ?, ?, ?, ?)',
-      [title.trim(), genreRecord.id, year, type, description.trim(), coverImage.trim()]
+      'INSERT INTO movies (title, genre_id, year, type, description, cover_image, video_url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [title.trim(), genreRecord.id, year, type, description.trim(), coverImage.trim(), videoUrl.trim()]
     );
 
     return await this.findById(result.insertId);
   }
 
-  static async update(id, { title, genre, year, type, description, coverImage }) {
+  static async update(id, { title, genre, year, type, description, coverImage, videoUrl }) {
     const movie = await this.findById(id);
     if (!movie) {
       return null;
@@ -106,6 +108,10 @@ class Movie {
       updateFields.push('cover_image = ?');
       updateValues.push(coverImage.trim());
     }
+    if (videoUrl !== undefined) {
+      updateFields.push('video_url = ?');
+      updateValues.push(videoUrl.trim());
+    }
 
     if (updateFields.length > 0) {
       updateValues.push(id);
@@ -143,7 +149,8 @@ class Movie {
       year: row.year,
       type: row.type,
       description: row.description || '',
-      coverImage: row.cover_image || ''
+      coverImage: row.cover_image || '',
+      videoUrl: row.video_url || ''
     }));
   }
 }

@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGenreContext } from '../context/GenreContext';
 import { listMovies } from '../services/moviesService';
 import { listFavorites, addFavorite, removeFavorite } from '../services/favoritesService';
 import { searchMovies } from '../services/moviesService';
@@ -10,11 +9,10 @@ import Notification from '../components/Notification';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { genres } = useGenreContext();
   const [movies, setMovies] = useState([]);
   const [moviesByGenre, setMoviesByGenre] = useState({});
   const [favorites, setFavorites] = useState([]);
-  const [featuredMovie, setFeaturedMovie] = useState(null);
+  const [heroIndex, setHeroIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
@@ -53,10 +51,7 @@ const Home = () => {
       setFavorites(Array.isArray(favoritesData) ? favoritesData : []);
 
       // Selecionar filme em destaque (primeiro com imagem)
-      const featured = allMovies.length > 0 
-        ? (allMovies.find(m => m.coverImage) || allMovies[0])
-        : null;
-      setFeaturedMovie(featured);
+      setHeroIndex(0);
 
       // Agrupar por gênero
       const moviesMap = {};
@@ -78,7 +73,7 @@ const Home = () => {
       setError(errorMessage);
       setMovies([]);
       setMoviesByGenre({});
-      setFeaturedMovie(null);
+      setHeroIndex(0);
     } finally {
       setLoading(false);
     }
@@ -120,6 +115,19 @@ const Home = () => {
           setFavorites([...favorites, movie]);
           setNotification({ message: 'Adicionado à sua lista!', type: 'success' });
           console.log('Filme adicionado à lista de favoritos');
+          
+          // Recarregar favoritos do servidor após um pequeno delay
+          setTimeout(async () => {
+            try {
+              const updatedFavorites = await listFavorites();
+              if (Array.isArray(updatedFavorites)) {
+                setFavorites(updatedFavorites);
+                console.log('Favoritos recarregados do servidor:', updatedFavorites);
+              }
+            } catch (err) {
+              console.warn('Não foi possível recarregar favoritos do servidor:', err);
+            }
+          }, 500);
         } else {
           console.warn('Filme não encontrado após adicionar aos favoritos');
           setNotification({ message: 'Favorito adicionado, mas filme não encontrado na lista', type: 'info' });
@@ -134,9 +142,45 @@ const Home = () => {
     }
   };
 
+  const genreNames = Object.keys(moviesByGenre).sort();
+  const hasMovies = movies.length > 0;
+
+  const heroSlides = useMemo(() => {
+    if (!hasMovies) return [];
+    const slidesWithImage = movies.filter((movie) => movie.coverImage);
+    const baseSlides = slidesWithImage.length > 0 ? slidesWithImage : movies;
+    return baseSlides.slice(0, 6);
+  }, [movies, hasMovies]);
+
+  const currentHero = heroSlides.length > 0 ? heroSlides[heroIndex % heroSlides.length] : null;
+
+  useEffect(() => {
+    if (heroSlides.length <= 1) return;
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroSlides.length);
+    }, 7000);
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
+
+  useEffect(() => {
+    if (heroSlides.length > 0 && heroIndex >= heroSlides.length) {
+      setHeroIndex(0);
+    }
+  }, [heroSlides.length, heroIndex]);
+
   const handleMovieClick = (movie) => {
-    // Pode navegar para detalhes ou fazer outra ação
-    console.log('Filme clicado:', movie);
+    if (!movie?.id) return;
+    navigate(`/movie/${movie.id}`);
+  };
+
+  const handleHeroNavigate = (direction) => {
+    if (heroSlides.length <= 1) return;
+    setHeroIndex((prev) => {
+      if (direction === 'prev') {
+        return prev === 0 ? heroSlides.length - 1 : prev - 1;
+      }
+      return (prev + 1) % heroSlides.length;
+    });
   };
 
   if (loading) {
@@ -147,9 +191,6 @@ const Home = () => {
       </div>
     );
   }
-
-  const genreNames = Object.keys(moviesByGenre).sort();
-  const hasMovies = movies.length > 0;
 
   // Mostrar erro de conexão
   if (error) {
@@ -184,44 +225,68 @@ const Home = () => {
         />
       )}
       {/* Hero Banner */}
-      {hasMovies && featuredMovie && (
+      {hasMovies && currentHero && (
         <div className="hero-banner">
           <div
             className="hero-banner__background"
+            key={currentHero.id || heroIndex}
             style={{
-              backgroundImage: featuredMovie.coverImage
-                ? `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.8)), url(${featuredMovie.coverImage})`
+              backgroundImage: currentHero.coverImage
+                ? `linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.95)), url(${currentHero.coverImage})`
                 : 'linear-gradient(to bottom, rgba(229,9,20,0.8), rgba(0,0,0,0.9))'
             }}
           >
             <div className="hero-banner__content">
               <div className="hero-banner__info">
-                <h1 className="hero-banner__title">{featuredMovie.title}</h1>
-                <div className="hero-banner__meta">
-                  <span>{featuredMovie.year}</span>
-                  <span>•</span>
-                  <span>{featuredMovie.type}</span>
-                  <span>•</span>
-                  <span>{featuredMovie.genre}</span>
+                <div className="hero-banner__badge">
+                  {currentHero.type === 'Série' ? 'Série em destaque' : 'Filme em destaque'}
                 </div>
-                {featuredMovie.description && (
-                  <p className="hero-banner__description">{featuredMovie.description}</p>
+                <h1 className="hero-banner__title">{currentHero.title}</h1>
+                <div className="hero-banner__meta">
+                  <span>{currentHero.year}</span>
+                  <span>•</span>
+                  <span>{currentHero.type}</span>
+                  <span>•</span>
+                  <span>{currentHero.genre}</span>
+                </div>
+                {currentHero.description && (
+                  <p className="hero-banner__description">{currentHero.description}</p>
                 )}
                 <div className="hero-banner__actions">
                   <button
                     className="primary large"
-                    onClick={() => handleMovieClick(featuredMovie)}
+                    onClick={() => handleMovieClick(currentHero)}
                   >
                     ▶ Assistir
                   </button>
                   <button
-                    className={`secondary large ${favorites.some(f => f.id === featuredMovie.id) ? 'active' : ''}`}
-                    onClick={() => handleToggleFavorite(featuredMovie.id)}
+                    className={`secondary large ${favorites.some(f => f.id === currentHero.id) ? 'active' : ''}`}
+                    onClick={() => handleToggleFavorite(currentHero.id)}
                   >
-                    {favorites.some(f => f.id === featuredMovie.id) ? '❤️ Minha Lista' : '🤍 Minha Lista'}
+                    {favorites.some(f => f.id === currentHero.id) ? '❤️ Minha Lista' : '🤍 Minha Lista'}
                   </button>
                 </div>
               </div>
+              {heroSlides.length > 1 && (
+                <div className="hero-banner__controls">
+                  <button className="hero-banner__nav" onClick={() => handleHeroNavigate('prev')}>
+                    ‹
+                  </button>
+                  <div className="hero-banner__dots">
+                    {heroSlides.map((slide, index) => (
+                      <button
+                        key={slide.id || index}
+                        className={`hero-banner__dot ${index === heroIndex ? 'active' : ''}`}
+                        onClick={() => setHeroIndex(index)}
+                        aria-label={`Mostrar ${slide.title}`}
+                      />
+                    ))}
+                  </div>
+                  <button className="hero-banner__nav" onClick={() => handleHeroNavigate('next')}>
+                    ›
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

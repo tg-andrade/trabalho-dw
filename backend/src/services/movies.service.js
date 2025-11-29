@@ -38,7 +38,7 @@ const getMovieById = async (id) => {
 };
 
 const createMovie = async (payload) => {
-  const { title, genre, year, type, description = '', coverImage = '' } = payload || {};
+  const { title, genre, year, type, description = '', coverImage = '', videoUrl = '' } = payload || {};
 
   if (!title || !title.trim()) {
     throw createHttpError(400, 'Título é obrigatório');
@@ -60,7 +60,8 @@ const createMovie = async (payload) => {
     year: Number(year),
     type,
     description: description.trim(),
-    coverImage: coverImage.trim()
+    coverImage: coverImage.trim(),
+    videoUrl: videoUrl.trim()
   });
 };
 
@@ -72,7 +73,7 @@ const updateMovie = async (id, payload) => {
     throw createHttpError(404, 'Filme ou série não encontrado');
   }
 
-  const { title, genre, year, type, description, coverImage } = payload || {};
+  const { title, genre, year, type, description, coverImage, videoUrl } = payload || {};
 
   if (genre) {
     await validateGenreExists(genre);
@@ -93,6 +94,7 @@ const updateMovie = async (id, payload) => {
   if (type !== undefined) updateData.type = type;
   if (description !== undefined) updateData.description = description;
   if (coverImage !== undefined) updateData.coverImage = coverImage;
+  if (videoUrl !== undefined) updateData.videoUrl = videoUrl;
 
   return await Movie.update(movieId, updateData);
 };
